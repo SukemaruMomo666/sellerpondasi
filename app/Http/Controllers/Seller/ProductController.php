@@ -73,13 +73,15 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $hasVariasi = $request->has('has_variasi') && $request->has_variasi == 1;
+
         // 1. Validasi Input Super Aman
         $request->validate([
             'nama_barang' => 'required|string|min:5|max:255',
             'kategori_id' => 'required|exists:tb_kategori,id',
-            'harga'       => 'required|numeric|min:0',
+            'harga'       => $hasVariasi ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
+            'stok'        => $hasVariasi ? 'nullable|integer|min:0' : 'required|integer|min:0',
             'min_order'   => 'required|integer|min:1',
-            'stok'        => 'required|integer|min:0',
             'berat_kg'    => 'required|numeric|min:0.01',
             'panjang_cm'  => 'nullable|numeric|min:0',
             'lebar_cm'    => 'nullable|numeric|min:0',
@@ -95,6 +97,14 @@ class ProductController extends Controller
             'diskon_mulai'    => 'nullable|date',
             'diskon_berakhir' => 'nullable|date|after_or_equal:diskon_mulai',
         ]);
+
+        if ($hasVariasi) {
+            $request->validate([
+                'variasi_nama' => 'required|array',
+                'sku_harga' => 'required|array',
+                'sku_stok' => 'required|array',
+            ]);
+        }
 
         // Proteksi Logika Diskon Persen (Maks 100%)
         if ($request->tipe_diskon == 'PERSEN' && $request->nilai_diskon > 100) {
@@ -125,34 +135,97 @@ class ProductController extends Controller
         $statusModerasi = ($autoApprove == '1') ? 'approved' : 'pending';
 
         // 5. Simpan ke Database
-        DB::table('tb_barang')->insert([
+        // Jika ada variasi, harga termurah akan jadi patokan harga utama (display price)
+        // Dan total stok variasi akan jadi patokan stok utama
+        $hargaUtama = $request->harga ?? 0;
+        $stokUtama = $request->stok ?? 0;
+
+        if ($hasVariasi && !empty($request->sku_harga)) {
+            $hargaUtama = min($request->sku_harga);
+            $stokUtama = array_sum($request->sku_stok);
+        }
+
+        $barangId = DB::table('tb_barang')->insertGetId([
             'toko_id'         => $toko->id,
             'kategori_id'     => $request->kategori_id,
             'nama_barang'     => $request->nama_barang,
             'merk_barang'     => $request->merk_barang,
             'kode_barang'     => $request->kode_barang,
-            'harga'           => $request->harga,
+            'harga'           => $hargaUtama,
             'min_order'       => $request->min_order,
-            'stok'            => $request->stok,
+            'stok'            => $stokUtama,
             'berat_kg'        => $request->berat_kg,
             'panjang_cm'      => $request->panjang_cm ?? 0,
             'lebar_cm'        => $request->lebar_cm ?? 0,
             'tinggi_cm'       => $request->tinggi_cm ?? 0,
             'satuan_unit'     => $request->satuan_unit ?? 'pcs',
             'deskripsi'       => $request->deskripsi,
-
-            // Masukkan diskon yang sudah divalidasi
             'tipe_diskon'     => $tipeDiskon,
             'nilai_diskon'    => $nilaiDiskon,
             'diskon_mulai'    => $diskonMulai,
             'diskon_berakhir' => $diskonBerakhir,
-
             'gambar_utama'    => $gambarName,
             'status_moderasi' => $statusModerasi,
             'is_active'       => 1,
             'created_at'      => now(),
             'updated_at'      => now()
         ]);
+
+        // LOGIKA INSERT VARIASI (MATRIKS)
+        if ($hasVariasi) {
+            $variasiNama = $request->variasi_nama; // array [0 => 'Warna', 1 => 'Ukuran']
+            $variasiOpsi = $request->variasi_opsi; // array [0 => ['Merah','Biru'], 1 => ['S','M']]
+            
+            $opsiMap = []; // format: ['Warna' => ['Merah' => id, 'Biru' => id]]
+
+            foreach ($variasiNama as $index => $nama) {
+                if (empty($nama)) continue;
+                
+                $varId = DB::table('tb_barang_variasi')->insertGetId([
+                    'barang_id' => $barangId,
+                    'nama_variasi' => $nama,
+                    'urutan' => $index + 1,
+                    'created_at' => now()
+                ]);
+
+                $opsiList = $variasiOpsi[$index] ?? [];
+                foreach ($opsiList as $opsiNama) {
+                    if (empty($opsiNama)) continue;
+                    $opsiId = DB::table('tb_barang_variasi_opsi')->insertGetId([
+                        'variasi_id' => $varId,
+                        'nama_opsi' => $opsiNama,
+                        'created_at' => now()
+                    ]);
+                    $opsiMap[$index][$opsiNama] = $opsiId;
+                }
+            }
+
+            // Membangun Matriks SKU
+            $skuOpsi1 = $request->sku_opsi1 ?? [];
+            $skuOpsi2 = $request->sku_opsi2 ?? [];
+            $skuHarga = $request->sku_harga ?? [];
+            $skuStok = $request->sku_stok ?? [];
+            $skuKode = $request->sku_kode ?? [];
+
+            foreach ($skuOpsi1 as $i => $o1) {
+                $o2 = $skuOpsi2[$i] ?? null;
+                
+                $id_opsi1 = isset($opsiMap[0][$o1]) ? $opsiMap[0][$o1] : null;
+                $id_opsi2 = (!empty($o2) && isset($opsiMap[1][$o2])) ? $opsiMap[1][$o2] : null;
+                
+                if ($id_opsi1) {
+                    DB::table('tb_barang_sku')->insert([
+                        'barang_id' => $barangId,
+                        'opsi_1_id' => $id_opsi1,
+                        'opsi_2_id' => $id_opsi2,
+                        'harga' => $skuHarga[$i] ?? 0,
+                        'stok' => $skuStok[$i] ?? 0,
+                        'kode_sku' => $skuKode[$i] ?? null,
+                        'created_at' => now()
+                    ]);
+                }
+            }
+        }
 
         $pesan = ($statusModerasi == 'approved')
                  ? 'Produk berhasil ditambahkan dan langsung tayang!'
