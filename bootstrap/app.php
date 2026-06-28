@@ -30,6 +30,10 @@ return Application::configure(basePath: dirname(__DIR__))
             '/webhook/midtrans',
             'api/*',
         ]);
+
+        // --- PENGALIHAN TAMU (BELUM LOGIN) ---
+        // Jika belum login dan mencoba akses halaman terlarang, lempar ke halaman login seller
+        $middleware->redirectGuestsTo('/seller/login');
         
     })
     ->withExceptions(function (Exceptions $exceptions): void {
