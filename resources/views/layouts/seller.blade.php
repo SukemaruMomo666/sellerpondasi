@@ -37,10 +37,36 @@
 
         /* Cegah scroll horizontal yang tidak sengaja */
         body { overflow-x: hidden; }
+        /* GLOBAL DARK MODE OVERRIDES (Requested by User) */
+        body { 
+            background-color: #0f172a !important; /* bg-slate-900 */
+            color: #f1f5f9 !important; /* text-slate-100 */
+        }
+        
+        /* Ubah semua card/elemen terang menjadi gelap */
+        .bg-white, .bg-slate-50, .bg-slate-100 { 
+            background-color: #1e293b !important; /* bg-slate-800 */
+            border-color: #334155 !important; /* border-slate-700 */
+            color: #f1f5f9 !important;
+        }
+        
+        /* Sesuaikan teks gelap menjadi terang */
+        .text-slate-900, .text-slate-800, .text-slate-700 { 
+            color: #f8fafc !important; /* text-slate-50 */
+        }
+        .text-slate-600, .text-slate-500 { 
+            color: #94a3b8 !important; /* text-slate-400 */
+        }
+        
+        /* Pengecualian untuk Sidebar & Navbar agar tetap blend in */
+        header.bg-slate-900, aside.bg-slate-900 {
+            background-color: #0f172a !important;
+            border-color: #1e293b !important;
+        }
     </style>
     @stack('styles')
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+<body class="antialiased selection:bg-blue-500 selection:text-white">
 
     <div class="flex min-h-screen w-full relative">
 
