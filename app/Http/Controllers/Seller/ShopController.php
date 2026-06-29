@@ -267,13 +267,32 @@ public function applyTierUpgrade(Request $request)
         $user = Auth::user();
         $toko = $this->getToko();
 
-        $notif = json_decode($toko->notifikasi_settings ?? '{}', true) ?: [
-            'email_pesanan' => true,
-            'email_promo'   => false,
-            'push_chat'     => true,
+        // Ambil pengaturan lanjutan dari kolom JSON (dulu notifikasi_settings)
+        $advanced = json_decode($toko->notifikasi_settings ?? '{}', true) ?: [];
+        
+        $notif = [
+            'email_pesanan' => $advanced['notif']['email_pesanan'] ?? true,
+            'email_promo'   => $advanced['notif']['email_promo'] ?? false,
+            'push_chat'     => $advanced['notif']['push_chat'] ?? true,
+            'system_alert'  => $advanced['notif']['system_alert'] ?? true,
+        ];
+        
+        $jadwal_libur = $advanced['jadwal_libur'] ?? ['mulai' => '', 'selesai' => ''];
+        $jam_operasional = $advanced['jam_operasional'] ?? [
+            'senin' => ['buka' => '08:00', 'tutup' => '17:00', 'aktif' => true],
+            'selasa' => ['buka' => '08:00', 'tutup' => '17:00', 'aktif' => true],
+            'rabu' => ['buka' => '08:00', 'tutup' => '17:00', 'aktif' => true],
+            'kamis' => ['buka' => '08:00', 'tutup' => '17:00', 'aktif' => true],
+            'jumat' => ['buka' => '08:00', 'tutup' => '17:00', 'aktif' => true],
+            'sabtu' => ['buka' => '09:00', 'tutup' => '15:00', 'aktif' => true],
+            'minggu' => ['buka' => '00:00', 'tutup' => '00:00', 'aktif' => false],
+        ];
+        $privasi = $advanced['privasi'] ?? [
+            'sembunyikan_habis' => false,
+            'sembunyikan_last_active' => false,
         ];
 
-        return view('seller.shop.settings', compact('user', 'toko', 'notif'));
+        return view('seller.shop.settings', compact('user', 'toko', 'notif', 'jadwal_libur', 'jam_operasional', 'privasi'));
     }
 
     public function updateSettings(Request $request)
@@ -281,24 +300,47 @@ public function applyTierUpgrade(Request $request)
         $user = Auth::user();
         $toko = $this->getToko();
 
-        // TAB PENGATURAN UMUM: Status Libur & Notifikasi
         if ($request->has('form_type') && $request->form_type == 'general') {
             $isVacation = $request->has('status_libur') ? 1 : 0;
 
-            $notifSettings = json_encode([
-                'email_pesanan' => $request->has('notif_email_pesanan'),
-                'email_promo'   => $request->has('notif_email_promo'),
-                'push_chat'     => $request->has('notif_push_chat'),
+            // Kumpulkan jam operasional
+            $jam_operasional = [];
+            $hari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+            foreach ($hari as $h) {
+                $jam_operasional[$h] = [
+                    'buka' => $request->input("jam_{$h}_buka", '08:00'),
+                    'tutup' => $request->input("jam_{$h}_tutup", '17:00'),
+                    'aktif' => $request->has("aktif_{$h}")
+                ];
+            }
+
+            // Kumpulkan semua pengaturan lanjutan ke satu JSON
+            $advancedSettings = json_encode([
+                'notif' => [
+                    'email_pesanan' => $request->has('notif_email_pesanan'),
+                    'email_promo'   => $request->has('notif_email_promo'),
+                    'push_chat'     => $request->has('notif_push_chat'),
+                    'system_alert'  => $request->has('notif_system_alert'),
+                ],
+                'jadwal_libur' => [
+                    'mulai' => $request->input('libur_mulai'),
+                    'selesai' => $request->input('libur_selesai')
+                ],
+                'jam_operasional' => $jam_operasional,
+                'privasi' => [
+                    'sembunyikan_habis' => $request->has('privasi_sembunyikan_habis'),
+                    'sembunyikan_last_active' => $request->has('privasi_sembunyikan_last_active')
+                ]
             ]);
 
             DB::table('tb_toko')->where('id', $toko->id)->update([
                 'status_libur'        => $isVacation,
                 'pesan_otomatis'      => $request->pesan_otomatis,
-                'notifikasi_settings' => $notifSettings,
+                'notifikasi_settings' => $advancedSettings,
                 'updated_at'          => now()
             ]);
 
-            return redirect()->back()->with('success', 'Pengaturan toko berhasil disimpan!');
+            return redirect()->back()->with('success', 'Pengaturan toko tingkat lanjut berhasil disimpan!');
         }
 
         return redirect()->back()->with('error', 'Permintaan tidak valid.');
