@@ -143,11 +143,23 @@
                                 $badgeClass = 'bg-blue-50 text-blue-600 border-blue-200';
                                 $statusText = 'Diproses';
 
-                                if($status == 'menunggu_pembayaran') { $badgeClass = 'bg-amber-50 text-amber-600 border-amber-200'; $statusText = 'Belum Bayar'; }
-                                elseif($status == 'siap_kirim') { $badgeClass = 'bg-emerald-50 text-emerald-600 border-emerald-200'; $statusText = 'Siap Angkut'; }
-                                elseif($status == 'dikirim') { $badgeClass = 'bg-indigo-50 text-indigo-600 border-indigo-200'; $statusText = 'Dikirim'; }
-                                elseif($status == 'sampai_tujuan') { $badgeClass = 'bg-slate-100 text-slate-600 border-slate-300'; $statusText = 'Selesai'; }
-                                elseif(in_array($status, ['dibatalkan', 'ditolak'])) { $badgeClass = 'bg-red-50 text-red-600 border-red-200'; $statusText = 'Batal'; }
+                                if ($status == 'menunggu_pembayaran') { 
+                                    $badgeClass = 'bg-amber-50 text-amber-600 border-amber-200'; $statusText = 'Belum Bayar'; 
+                                } elseif ($status == 'siap_kirim') { 
+                                    $badgeClass = 'bg-emerald-50 text-emerald-600 border-emerald-200'; 
+                                    if ($item->tipe_pengambilan == 'ambil_di_toko') $statusText = 'Siap Diambil';
+                                    elseif ($item->tipe_pengambilan == 'armada') $statusText = 'Armada Ready';
+                                    else $statusText = 'Tunggu Kurir';
+                                } elseif ($status == 'dikirim') { 
+                                    $badgeClass = 'bg-indigo-50 text-indigo-600 border-indigo-200'; 
+                                    if ($item->tipe_pengambilan == 'ambil_di_toko') $statusText = 'Sdh Diambil';
+                                    elseif ($item->tipe_pengambilan == 'armada') $statusText = 'Di Perjalanan';
+                                    else $statusText = 'Dikirim (Ekspedisi)';
+                                } elseif ($status == 'sampai_tujuan') { 
+                                    $badgeClass = 'bg-slate-100 text-slate-600 border-slate-300'; $statusText = 'Selesai'; 
+                                } elseif (in_array($status, ['dibatalkan', 'ditolak'])) { 
+                                    $badgeClass = 'bg-red-50 text-red-600 border-red-200'; $statusText = 'Batal'; 
+                                }
                             @endphp
 
                             <div class="order-item-row flex flex-col lg:flex-row items-start lg:items-center gap-5 p-6" data-status="{{ $status }}">
@@ -195,9 +207,19 @@
                                             @csrf
                                             <input type="hidden" name="detail_id" value="{{ $item->detail_id }}">
                                             <select name="status_baru" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
-                                                <option value="diproses" {{ $status == 'diproses' ? 'selected' : '' }}>1. Siapkan Barang</option>
-                                                <option value="siap_kirim" {{ $status == 'siap_kirim' ? 'selected' : '' }}>2. Siap Diangkut</option>
-                                                <option value="dikirim" {{ $status == 'dikirim' ? 'selected' : '' }}>3. Kirim via Armada</option>
+                                                @if($item->tipe_pengambilan == 'ambil_di_toko')
+                                                    <option value="diproses" {{ $status == 'diproses' ? 'selected' : '' }}>1. Siapkan di Toko</option>
+                                                    <option value="siap_kirim" {{ $status == 'siap_kirim' ? 'selected' : '' }}>2. Siap Diambil Pembeli</option>
+                                                    <option value="dikirim" {{ $status == 'dikirim' ? 'selected' : '' }}>3. Pesanan Sdh Diambil</option>
+                                                @elseif($item->tipe_pengambilan == 'armada')
+                                                    <option value="diproses" {{ $status == 'diproses' ? 'selected' : '' }}>1. Siapkan Barang</option>
+                                                    <option value="siap_kirim" {{ $status == 'siap_kirim' ? 'selected' : '' }}>2. Armada Siap Jalan</option>
+                                                    <option value="dikirim" {{ $status == 'dikirim' ? 'selected' : '' }}>3. Antar via Armada</option>
+                                                @else
+                                                    <option value="diproses" {{ $status == 'diproses' ? 'selected' : '' }}>1. Siapkan Barang</option>
+                                                    <option value="siap_kirim" {{ $status == 'siap_kirim' ? 'selected' : '' }}>2. Tunggu Kurir Pickup</option>
+                                                    <option value="dikirim" {{ $status == 'dikirim' ? 'selected' : '' }}>3. Serahkan ke Ekspedisi</option>
+                                                @endif
                                                 <option value="ditolak">Tolak Pesanan (Habis)</option>
                                             </select>
                                             <button type="button" class="w-full flex items-center justify-center gap-1.5 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-300 text-sm font-bold rounded-xl px-3 py-2 transition-colors btn-submit-single">

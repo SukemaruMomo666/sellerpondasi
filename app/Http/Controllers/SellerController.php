@@ -219,7 +219,7 @@ class SellerController extends Controller
             ->where('d.toko_id', $toko->id)
             ->select(
                 'd.id as detail_id', 'd.jumlah', 'd.subtotal', 'd.status_pesanan_item',
-                't.kode_invoice', 't.tanggal_transaksi', 't.sumber_transaksi',
+                't.kode_invoice', 't.tanggal_transaksi', 't.sumber_transaksi', 't.tipe_pengambilan',
                 'b.nama_barang', 'b.gambar_utama',
                 'u.nama as nama_pelanggan'
             )
