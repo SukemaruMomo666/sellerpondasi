@@ -31,7 +31,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('/seller/register', 'showRegisterSeller')->name('seller.register');
     Route::post('/seller/register', 'registerSeller')->name('seller.register.process');
 
-    Route::post('/logout', 'logout')->name('logout');
+    Route::post('/logout', 'logoutSeller')->name('logout');
 });
 
 // 2. SELLER CENTER (PROTECTED ROUTES)
