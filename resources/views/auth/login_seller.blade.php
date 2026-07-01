@@ -66,7 +66,7 @@
         <div class="relative z-20 w-full max-w-lg animate-fade-in-up">
 
             <div class="mb-10 inline-flex items-center justify-center p-3 glass-panel rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-500">
-                <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" onerror="this.outerHTML='<div class=\'text-white font-black text-2xl px-2\'>P<span class=\'text-blue-600\'>.</span> Seller</div>'">
+                <img src="{{ asset('logopondasikita.png') }}" alt="Logo" class="h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
             </div>
 
             <h1 class="text-5xl font-black text-white leading-[1.1] tracking-tight mb-6">
@@ -105,7 +105,7 @@
 
             {{-- Logo Mobile --}}
             <div class="lg:hidden mb-8">
-                <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-10 w-auto" onerror="this.outerHTML='<div class=\'text-black font-black text-3xl\'>Pondasikita<span class=\'text-blue-600\'>.</span></div>'">
+                <img src="{{ asset('logopondasikita.png') }}" alt="Logo" class="h-10 w-auto">
                 <span class="inline-block mt-2 bg-black text-white text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest">Seller Centre</span>
             </div>
 

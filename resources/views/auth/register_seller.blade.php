@@ -84,7 +84,7 @@
 
         <div class="relative z-20 animate-fade-in-up">
             <a href="{{ url('/') }}" class="inline-flex items-center justify-center p-3 glass-panel rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500 mb-12">
-                <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-8 w-auto object-contain drop-shadow-md" onerror="this.outerHTML='<div class=\'text-white font-black text-xl px-2\'>P<span class=\'text-blue-600\'>.</span></div>'">
+                <img src="{{ asset('logopondasikita.png') }}" alt="Logo" class="h-8 w-auto object-contain drop-shadow-md">
             </a>
 
             <h1 class="text-4xl xl:text-5xl font-black text-white leading-[1.1] tracking-tight mb-6">
@@ -129,7 +129,7 @@
 
             {{-- Logo Mobile --}}
             <div class="lg:hidden mb-8">
-                <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-8 w-auto" onerror="this.outerHTML='<div class=\'text-black font-black text-2xl\'>Pondasikita<span class=\'text-blue-600\'>.</span></div>'">
+                <img src="{{ asset('logopondasikita.png') }}" alt="Logo" class="h-8 w-auto">
             </div>
 
             <div class="mb-10">
