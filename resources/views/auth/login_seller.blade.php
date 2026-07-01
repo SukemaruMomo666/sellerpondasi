@@ -65,7 +65,7 @@
         {{-- Cinematic Branding Content --}}
         <div class="relative z-20 w-full max-w-lg animate-fade-in-up">
 
-            <div class="mb-10 inline-flex items-center justify-center p-3 glass-panel rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-500">
+            <div class="mb-10 inline-flex items-center justify-center p-3 bg-white/95 border border-zinc-200 rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-500">
                 <img src="{{ asset('logopondasikita.png') }}" alt="Logo" class="h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
             </div>
 

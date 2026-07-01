@@ -83,7 +83,7 @@
         <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.05] pointer-events-none z-10"></div>
 
         <div class="relative z-20 animate-fade-in-up">
-            <a href="{{ url('/') }}" class="inline-flex items-center justify-center p-3 glass-panel rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500 mb-12">
+            <a href="{{ url('/') }}" class="inline-flex items-center justify-center p-3 bg-white/95 border border-zinc-200 rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500 mb-12">
                 <img src="{{ asset('logopondasikita.png') }}" alt="Logo" class="h-8 w-auto object-contain drop-shadow-md">
             </a>
 
