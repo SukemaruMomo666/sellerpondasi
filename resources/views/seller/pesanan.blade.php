@@ -447,37 +447,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- 5. KONFIRMASI UPDATE SATUAN (ONCLICK) ---
-    window.confirmUpdate = function(btn, actionText, newStatus) {
-        let form = btn.closest('form');
-        form.querySelector('.input-status-baru').value = newStatus;
+}); // End of DOMContentLoaded
 
-        let title = newStatus === 'ditolak' ? 'Tolak Pesanan?' : 'Lanjutkan Proses?';
-        let text = newStatus === 'ditolak' 
-            ? 'Yakin ingin menolak pesanan ini? Stok barang akan dikembalikan otomatis.'
-            : `Apakah Anda yakin ingin melakukan aksi: "${actionText}"?`;
-        
-        let confirmColor = newStatus === 'ditolak' ? '#dc2626' : '#2563eb';
-        let confirmText = newStatus === 'ditolak' ? 'Ya, Tolak' : 'Ya, Lanjutkan';
-        let iconType = newStatus === 'ditolak' ? 'warning' : 'question';
+// --- 5. KONFIRMASI UPDATE SATUAN (GLOBAL ONCLICK) ---
+function confirmUpdate(btn, actionText, newStatus) {
+    let form = btn.closest('form');
+    form.querySelector('.input-status-baru').value = newStatus;
 
-        Swal.fire({
-            title: title,
-            text: text,
-            icon: iconType,
-            showCancelButton: true,
-            confirmButtonColor: confirmColor,
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: confirmText,
-            cancelButtonText: 'Batal',
-            customClass: { popup: 'rounded-3xl' }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        });
-    };
+    let title = newStatus === 'ditolak' ? 'Tolak Pesanan?' : 'Lanjutkan Proses?';
+    let text = newStatus === 'ditolak' 
+        ? 'Yakin ingin menolak pesanan ini? Stok barang akan dikembalikan otomatis.'
+        : `Apakah Anda yakin ingin melakukan aksi: "${actionText}"?`;
+    
+    let confirmColor = newStatus === 'ditolak' ? '#dc2626' : '#2563eb';
+    let confirmText = newStatus === 'ditolak' ? 'Ya, Tolak' : 'Ya, Lanjutkan';
+    let iconType = newStatus === 'ditolak' ? 'warning' : 'question';
 
-});
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: iconType,
+        showCancelButton: true,
+        confirmButtonColor: confirmColor,
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: confirmText,
+        cancelButtonText: 'Batal',
+        customClass: { popup: 'rounded-3xl' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+}
 </script>
 @endpush
