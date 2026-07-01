@@ -92,35 +92,17 @@ public function updateProfile(Request $request)
         $logo = $request->file('logo_toko');
         $logoName = 'logo_' . \Illuminate\Support\Str::random(10) . '.' . $logo->getClientOriginalExtension();
 
-        // Hapus file lama di kedua lokasi
         if (!empty($toko->logo_toko)) {
             $oldPath = public_path('assets/uploads/logos/' . $toko->logo_toko);
             if (\Illuminate\Support\Facades\File::exists($oldPath)) { 
                 \Illuminate\Support\Facades\File::delete($oldPath); 
             }
-            // Hapus juga di folder customer (repopondasi)
-            $oldPathCustomer = base_path('../repopondasi/public/assets/uploads/logos/' . $toko->logo_toko);
-            if (\Illuminate\Support\Facades\File::exists($oldPathCustomer)) { 
-                \Illuminate\Support\Facades\File::delete($oldPathCustomer); 
-            }
         }
 
-        // Simpan di folder seller
         if(!\Illuminate\Support\Facades\File::exists(public_path('assets/uploads/logos'))) { 
             \Illuminate\Support\Facades\File::makeDirectory(public_path('assets/uploads/logos'), 0777, true); 
         }
         $logo->move(public_path('assets/uploads/logos'), $logoName);
-
-        // SINKRONISASI: Copy juga ke folder customer (repopondasi)
-        $customerLogoDir = base_path('../repopondasi/public/assets/uploads/logos');
-        if(!\Illuminate\Support\Facades\File::exists($customerLogoDir)) { 
-            \Illuminate\Support\Facades\File::makeDirectory($customerLogoDir, 0777, true); 
-        }
-        \Illuminate\Support\Facades\File::copy(
-            public_path('assets/uploads/logos/' . $logoName),
-            $customerLogoDir . '/' . $logoName
-        );
-
         $dataUpdate['logo_toko'] = $logoName;
     }
 
@@ -129,35 +111,17 @@ public function updateProfile(Request $request)
         $banner = $request->file('banner_toko');
         $bannerName = 'banner_' . \Illuminate\Support\Str::random(10) . '.' . $banner->getClientOriginalExtension();
 
-        // Hapus file lama di kedua lokasi
         if (!empty($toko->banner_toko)) {
             $oldBannerPath = public_path('assets/uploads/banners/' . $toko->banner_toko);
             if (\Illuminate\Support\Facades\File::exists($oldBannerPath)) { 
                 \Illuminate\Support\Facades\File::delete($oldBannerPath); 
             }
-            // Hapus juga di folder customer (repopondasi)
-            $oldBannerCustomer = base_path('../repopondasi/public/assets/uploads/banners/' . $toko->banner_toko);
-            if (\Illuminate\Support\Facades\File::exists($oldBannerCustomer)) { 
-                \Illuminate\Support\Facades\File::delete($oldBannerCustomer); 
-            }
         }
 
-        // Simpan di folder seller
         if(!\Illuminate\Support\Facades\File::exists(public_path('assets/uploads/banners'))) { 
             \Illuminate\Support\Facades\File::makeDirectory(public_path('assets/uploads/banners'), 0777, true); 
         }
         $banner->move(public_path('assets/uploads/banners'), $bannerName);
-
-        // SINKRONISASI: Copy juga ke folder customer (repopondasi)
-        $customerBannerDir = base_path('../repopondasi/public/assets/uploads/banners');
-        if(!\Illuminate\Support\Facades\File::exists($customerBannerDir)) { 
-            \Illuminate\Support\Facades\File::makeDirectory($customerBannerDir, 0777, true); 
-        }
-        \Illuminate\Support\Facades\File::copy(
-            public_path('assets/uploads/banners/' . $bannerName),
-            $customerBannerDir . '/' . $bannerName
-        );
-
         $dataUpdate['banner_toko'] = $bannerName;
     }
 
