@@ -125,6 +125,16 @@ class ProductController extends Controller
 
             $gambarName = time() . '_' . uniqid() . '.' . $file->extension();
             $file->move(public_path('assets/uploads/products'), $gambarName);
+
+            // SINKRONISASI: Copy juga ke folder customer (repopondasi)
+            $customerProductDir = base_path('../repopondasi/public/assets/uploads/products');
+            if(!\Illuminate\Support\Facades\File::exists($customerProductDir)) { 
+                \Illuminate\Support\Facades\File::makeDirectory($customerProductDir, 0777, true); 
+            }
+            \Illuminate\Support\Facades\File::copy(
+                public_path('assets/uploads/products/' . $gambarName),
+                $customerProductDir . '/' . $gambarName
+            );
         }
 
         // 3. Ambil ID Toko
@@ -303,12 +313,27 @@ class ProductController extends Controller
             if ($gambarName && $gambarName != 'default.jpg' && File::exists($oldImagePath)) {
                 File::delete($oldImagePath);
             }
+            // Hapus juga file lama di customer (repopondasi)
+            $oldImageCustomer = base_path('../repopondasi/public/assets/uploads/products/' . $gambarName);
+            if ($gambarName && $gambarName != 'default.jpg' && File::exists($oldImageCustomer)) {
+                File::delete($oldImageCustomer);
+            }
 
             $fileData = $request->file('gambar');
             $file = is_array($fileData) ? $fileData[0] : $fileData;
 
             $gambarName = time() . '_' . uniqid() . '.' . $file->extension();
             $file->move(public_path('assets/uploads/products'), $gambarName);
+
+            // SINKRONISASI: Copy juga ke folder customer (repopondasi)
+            $customerProductDir = base_path('../repopondasi/public/assets/uploads/products');
+            if(!File::exists($customerProductDir)) { 
+                File::makeDirectory($customerProductDir, 0777, true); 
+            }
+            File::copy(
+                public_path('assets/uploads/products/' . $gambarName),
+                $customerProductDir . '/' . $gambarName
+            );
         }
 
         // 3. Update Database
