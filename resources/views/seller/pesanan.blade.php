@@ -241,12 +241,12 @@
                                             <input type="hidden" name="detail_id" value="{{ $item->detail_id }}">
                                             <input type="hidden" name="status_baru" value="{{ $nextStatus }}" class="input-status-baru">
                                             
-                                            <button type="button" class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg text-sm font-bold rounded-xl px-3 py-2.5 transition-all btn-action-next" data-text="{{ $nextActionText }}">
+                                            <button type="button" onclick="confirmUpdate(this, '{{ $nextActionText }}', '{{ $nextStatus }}')" class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg text-sm font-bold rounded-xl px-3 py-2.5 transition-all" data-text="{{ $nextActionText }}">
                                                 <i class="mdi {{ $nextActionIcon }} text-lg leading-none"></i> {{ $nextActionText }}
                                             </button>
 
                                             @if($tolakButton)
-                                                <button type="button" class="w-full flex items-center justify-center gap-1 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-xs font-bold rounded-xl px-3 py-2 transition-colors btn-action-tolak">
+                                                <button type="button" onclick="confirmUpdate(this, 'Tolak Pesanan', 'ditolak')" class="w-full flex items-center justify-center gap-1 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-xs font-bold rounded-xl px-3 py-2 transition-colors">
                                                     <i class="mdi mdi-close-circle-outline text-base leading-none"></i> Tolak Pesanan
                                                 </button>
                                             @endif
@@ -447,55 +447,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Konfirmasi Update Satuan - Tombol Next Action
-    document.querySelectorAll('.btn-action-next').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            let form = this.closest('form');
-            let actionText = this.getAttribute('data-text');
+    // --- 5. KONFIRMASI UPDATE SATUAN (ONCLICK) ---
+    window.confirmUpdate = function(btn, actionText, newStatus) {
+        let form = btn.closest('form');
+        form.querySelector('.input-status-baru').value = newStatus;
 
-            Swal.fire({
-                title: 'Lanjutkan Proses?',
-                text: `Apakah Anda yakin ingin melakukan aksi: "${actionText}"?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb', // Blue 600
-                cancelButtonColor: '#94a3b8',  // Slate 400
-                confirmButtonText: 'Ya, Lanjutkan',
-                cancelButtonText: 'Batal',
-                customClass: { popup: 'rounded-3xl' }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
+        let title = newStatus === 'ditolak' ? 'Tolak Pesanan?' : 'Lanjutkan Proses?';
+        let text = newStatus === 'ditolak' 
+            ? 'Yakin ingin menolak pesanan ini? Stok barang akan dikembalikan otomatis.'
+            : `Apakah Anda yakin ingin melakukan aksi: "${actionText}"?`;
+        
+        let confirmColor = newStatus === 'ditolak' ? '#dc2626' : '#2563eb';
+        let confirmText = newStatus === 'ditolak' ? 'Ya, Tolak' : 'Ya, Lanjutkan';
+        let iconType = newStatus === 'ditolak' ? 'warning' : 'question';
+
+        Swal.fire({
+            title: title,
+            text: text,
+            icon: iconType,
+            showCancelButton: true,
+            confirmButtonColor: confirmColor,
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: confirmText,
+            cancelButtonText: 'Batal',
+            customClass: { popup: 'rounded-3xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
         });
-    });
-
-    // Konfirmasi Tolak Pesanan
-    document.querySelectorAll('.btn-action-tolak').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            let form = this.closest('form');
-            form.querySelector('.input-status-baru').value = 'ditolak';
-
-            Swal.fire({
-                title: 'Tolak Pesanan?',
-                text: "Yakin ingin menolak pesanan ini? Stok barang akan dikembalikan otomatis.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626', // Red 600
-                cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Ya, Tolak',
-                cancelButtonText: 'Batal',
-                customClass: { popup: 'rounded-3xl' }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
+    };
 
 });
 </script>
