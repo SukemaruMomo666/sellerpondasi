@@ -203,28 +203,53 @@
                                 {{-- Form Aksi --}}
                                 <div class="w-full lg:w-56 flex-shrink-0">
                                     @if(in_array($status, ['diproses', 'siap_kirim']))
+                                        @php
+                                            $nextStatus = '';
+                                            $nextActionText = '';
+                                            $nextActionIcon = '';
+                                            $tolakButton = true;
+
+                                            if ($status == 'diproses') {
+                                                $nextStatus = 'siap_kirim';
+                                                if ($item->tipe_pengambilan == 'ambil_di_toko') {
+                                                    $nextActionText = 'Tandai Siap Diambil';
+                                                    $nextActionIcon = 'mdi-package-check';
+                                                } elseif ($item->tipe_pengambilan == 'armada') {
+                                                    $nextActionText = 'Tandai Armada Siap';
+                                                    $nextActionIcon = 'mdi-truck-check';
+                                                } else {
+                                                    $nextActionText = 'Tandai Siap Diangkut';
+                                                    $nextActionIcon = 'mdi-package-variant-closed-check';
+                                                }
+                                            } elseif ($status == 'siap_kirim') {
+                                                $nextStatus = 'dikirim';
+                                                $tolakButton = false; 
+                                                if ($item->tipe_pengambilan == 'ambil_di_toko') {
+                                                    $nextActionText = 'Selesai (Sudah Diambil)';
+                                                    $nextActionIcon = 'mdi-handshake';
+                                                } elseif ($item->tipe_pengambilan == 'armada') {
+                                                    $nextActionText = 'Berangkatkan Armada';
+                                                    $nextActionIcon = 'mdi-truck-fast';
+                                                } else {
+                                                    $nextActionText = 'Serahkan ke Ekspedisi';
+                                                    $nextActionIcon = 'mdi-truck-delivery';
+                                                }
+                                            }
+                                        @endphp
                                         <form action="{{ route('seller.orders.updateStatus') }}" method="POST" class="flex flex-col gap-2">
                                             @csrf
                                             <input type="hidden" name="detail_id" value="{{ $item->detail_id }}">
-                                            <select name="status_baru" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
-                                                @if($item->tipe_pengambilan == 'ambil_di_toko')
-                                                    <option value="diproses" {{ $status == 'diproses' ? 'selected' : '' }}>1. Siapkan di Toko</option>
-                                                    <option value="siap_kirim" {{ $status == 'siap_kirim' ? 'selected' : '' }}>2. Siap Diambil Pembeli</option>
-                                                    <option value="dikirim" {{ $status == 'dikirim' ? 'selected' : '' }}>3. Pesanan Sdh Diambil</option>
-                                                @elseif($item->tipe_pengambilan == 'armada')
-                                                    <option value="diproses" {{ $status == 'diproses' ? 'selected' : '' }}>1. Siapkan Barang</option>
-                                                    <option value="siap_kirim" {{ $status == 'siap_kirim' ? 'selected' : '' }}>2. Armada Siap Jalan</option>
-                                                    <option value="dikirim" {{ $status == 'dikirim' ? 'selected' : '' }}>3. Antar via Armada</option>
-                                                @else
-                                                    <option value="diproses" {{ $status == 'diproses' ? 'selected' : '' }}>1. Siapkan Barang</option>
-                                                    <option value="siap_kirim" {{ $status == 'siap_kirim' ? 'selected' : '' }}>2. Tunggu Kurir Pickup</option>
-                                                    <option value="dikirim" {{ $status == 'dikirim' ? 'selected' : '' }}>3. Serahkan ke Ekspedisi</option>
-                                                @endif
-                                                <option value="ditolak">Tolak Pesanan (Habis)</option>
-                                            </select>
-                                            <button type="button" class="w-full flex items-center justify-center gap-1.5 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-300 text-sm font-bold rounded-xl px-3 py-2 transition-colors btn-submit-single">
-                                                <i class="mdi mdi-check-circle-outline text-lg leading-none"></i> Simpan
+                                            <input type="hidden" name="status_baru" value="{{ $nextStatus }}" class="input-status-baru">
+                                            
+                                            <button type="button" class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg text-sm font-bold rounded-xl px-3 py-2.5 transition-all btn-action-next" data-text="{{ $nextActionText }}">
+                                                <i class="mdi {{ $nextActionIcon }} text-lg leading-none"></i> {{ $nextActionText }}
                                             </button>
+
+                                            @if($tolakButton)
+                                                <button type="button" class="w-full flex items-center justify-center gap-1 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-xs font-bold rounded-xl px-3 py-2 transition-colors btn-action-tolak">
+                                                    <i class="mdi mdi-close-circle-outline text-base leading-none"></i> Tolak Pesanan
+                                                </button>
+                                            @endif
                                         </form>
                                     @else
                                         {{-- Ganti $item dengan variabel yang ada di @foreach Bos, biasanya $item atau $pesanan --}}
@@ -422,21 +447,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Konfirmasi Update Satuan
-    document.querySelectorAll('.btn-submit-single').forEach(btn => {
+    // Konfirmasi Update Satuan - Tombol Next Action
+    document.querySelectorAll('.btn-action-next').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             let form = this.closest('form');
-            let select = form.querySelector('select').options[form.querySelector('select').selectedIndex].text;
+            let actionText = this.getAttribute('data-text');
 
             Swal.fire({
-                title: 'Update Status?',
-                text: `Ubah status item ini menjadi: ${select}?`,
-                icon: 'info',
+                title: 'Lanjutkan Proses?',
+                text: `Apakah Anda yakin ingin melakukan aksi: "${actionText}"?`,
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#2563eb', // Blue 600
                 cancelButtonColor: '#94a3b8',  // Slate 400
-                confirmButtonText: 'Ya, Simpan',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal',
+                customClass: { popup: 'rounded-3xl' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+
+    // Konfirmasi Tolak Pesanan
+    document.querySelectorAll('.btn-action-tolak').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            let form = this.closest('form');
+            form.querySelector('.input-status-baru').value = 'ditolak';
+
+            Swal.fire({
+                title: 'Tolak Pesanan?',
+                text: "Yakin ingin menolak pesanan ini? Stok barang akan dikembalikan otomatis.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626', // Red 600
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Tolak',
                 cancelButtonText: 'Batal',
                 customClass: { popup: 'rounded-3xl' }
             }).then((result) => {
